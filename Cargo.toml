@@ -17,9 +17,9 @@ opt-level = 3
 [profile.release]
 opt-level = 3
 strip = true
-lto = true
 codegen-units = 1
 
 [dependencies]
 bevy = { version = "0.10.1", features = ["dynamic_linking"] }
 bevy-inspector-egui = "0.18.3"
+bevy_flycam = "0.10.1"
