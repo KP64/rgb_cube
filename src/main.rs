@@ -126,9 +126,9 @@ fn setup_rgb_cube(
                         let y = y as f32;
                         let z = z as f32;
 
-                        let r = 255. * (x / GRID_COUNT);
-                        let g = 255. * (y / GRID_COUNT);
-                        let b = 255. * (z / GRID_COUNT);
+                        let r = x / GRID_COUNT;
+                        let g = y / GRID_COUNT;
+                        let b = z / GRID_COUNT;
                         parent.spawn(PbrBundle {
                             mesh: meshes.add(
                                 Mesh::try_from(shape::Icosphere {
@@ -138,8 +138,7 @@ fn setup_rgb_cube(
                                 .unwrap(),
                             ),
                             visibility: Visibility::Visible,
-                            material: materials
-                                .add(Color::rgb_u8(r as u8, g as u8, b as u8).into()),
+                            material: materials.add(Color::rgb(r, g, b).into()),
                             transform: Transform::from_xyz(x, y, z),
                             ..Default::default()
                         });
