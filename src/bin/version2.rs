@@ -49,7 +49,7 @@ fn main() {
         )
         .add_plugin(NoCameraPlayerPlugin)
         .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin)
         .add_plugin(WorldInspectorPlugin::default())
         .add_startup_system(setup_environment)
         .add_startup_system(setup_rgb_cube)
@@ -110,8 +110,6 @@ fn setup_rgb_cube(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // * const GRID_COUNT: f32 = WINDOW_WIDTH / 128.;
-
     const GRID_COUNT: f32 = WINDOW_WIDTH / 256.;
     const I_GRID_COUNT: i32 = GRID_COUNT as i32;
 
