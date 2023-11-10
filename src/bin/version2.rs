@@ -16,6 +16,8 @@
     clippy::cast_sign_loss
 )]
 
+use std::ops::Range;
+
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     log::{self, LogPlugin},
@@ -24,6 +26,7 @@ use bevy::{
 };
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use itertools::iproduct;
 
 const WINDOW_DIMENSIONS: (f32, f32) = (1280., 720.);
 const WINDOW_WIDTH: f32 = WINDOW_DIMENSIONS.0;
@@ -47,13 +50,14 @@ fn main() {
                     filter: "debug,wgpu_core=warn,wgpu_hal=warn,mygame=debug".into(),
                 }),
         )
-        .add_plugin(NoCameraPlayerPlugin)
-        .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin)
-        .add_plugin(WorldInspectorPlugin::default())
-        .add_startup_system(setup_environment)
-        .add_startup_system(setup_rgb_cube)
-        .add_system(rotate_rgb_cube)
+        .add_plugins((
+            NoCameraPlayerPlugin,
+            LogDiagnosticsPlugin::default(),
+            FrameTimeDiagnosticsPlugin,
+            WorldInspectorPlugin::default(),
+        ))
+        .add_systems(Startup, (setup_environment, setup_rgb_cube))
+        .add_systems(Update, rotate_rgb_cube)
         .run();
 }
 
@@ -78,18 +82,14 @@ fn setup_environment(mut commands: Commands) {
         .insert(Name::new("Camera"));
 
     // * Going through every combination
-    for x in 0..2 {
-        for y in 0..2 {
-            for z in 0..2 {
-                let x = if x % 2 == 0 { 1. } else { -1. };
-                let y = if y % 2 == 0 { 1. } else { -1. };
-                let z = if z % 2 == 0 { 1. } else { -1. };
-                commands.spawn(PointLightBundle {
-                    transform: Transform::from_translation(Vec3::new(x, y, z) * LIGHT_POSITION),
-                    ..Default::default()
-                });
-            }
-        }
+    for (x, y, z) in iproduct!(0..2, 0..2, 0..2) {
+        let x = if x % 2 == 0 { 1. } else { -1. };
+        let y = if y % 2 == 0 { 1. } else { -1. };
+        let z = if z % 2 == 0 { 1. } else { -1. };
+        commands.spawn(PointLightBundle {
+            transform: Transform::from_translation(Vec3::new(x, y, z) * LIGHT_POSITION),
+            ..Default::default()
+        });
     }
 }
 
@@ -112,6 +112,7 @@ fn setup_rgb_cube(
 ) {
     const GRID_COUNT: f32 = WINDOW_WIDTH / 256.;
     const I_GRID_COUNT: i32 = GRID_COUNT as i32;
+    const CHILDREN_GRID_RANGE: Range<i32> = -I_GRID_COUNT..I_GRID_COUNT;
 
     let gegenkathete = 4.;
     let hypotenuse = (2. * 4_f32.powi(2)).sqrt();
@@ -123,42 +124,40 @@ fn setup_rgb_cube(
     let transform = Transform::from_translation(res);
 
     commands
-        .spawn((
-            PbrBundle {
-                visibility: Visibility::Hidden,
-                // TODO: Fix this to be mathematically accurate and not based on assumptions
-                transform: transform
-                    .with_rotation(Quat::from_rotation_x(-1.) * Quat::from_rotation_y(-0.8)),
-                ..Default::default()
-            },
-            Rotator,
-        ))
+        .spawn(PbrBundle {
+            visibility: Visibility::Hidden,
+            // TODO: Fix this to be mathematically accurate and not based on assumptions
+            transform: transform
+                .with_rotation(Quat::from_rotation_x(-1.) * Quat::from_rotation_y(-0.8)),
+            ..Default::default()
+        })
+        .insert(Rotator)
         .with_children(|parent| {
-            for x in -I_GRID_COUNT..I_GRID_COUNT {
-                for y in -I_GRID_COUNT..I_GRID_COUNT {
-                    for z in -I_GRID_COUNT..I_GRID_COUNT {
-                        let x = x as f32;
-                        let y = y as f32;
-                        let z = z as f32;
+            for (x, y, z) in iproduct!(
+                CHILDREN_GRID_RANGE,
+                CHILDREN_GRID_RANGE,
+                CHILDREN_GRID_RANGE
+            ) {
+                let x = x as f32;
+                let y = y as f32;
+                let z = z as f32;
 
-                        let r = x / GRID_COUNT;
-                        let g = y / GRID_COUNT;
-                        let b = z / GRID_COUNT;
-                        parent.spawn(PbrBundle {
-                            mesh: meshes.add(
-                                Mesh::try_from(shape::Icosphere {
-                                    radius: 0.25,
-                                    ..Default::default()
-                                })
-                                .unwrap(),
-                            ),
-                            visibility: Visibility::Visible,
-                            material: materials.add(Color::rgb(r, g, b).into()),
-                            transform: Transform::from_xyz(x, y, z),
+                let r = x / GRID_COUNT;
+                let g = y / GRID_COUNT;
+                let b = z / GRID_COUNT;
+                parent.spawn(PbrBundle {
+                    mesh: meshes.add(
+                        Mesh::try_from(shape::Icosphere {
+                            radius: 0.25,
                             ..Default::default()
-                        });
-                    }
-                }
+                        })
+                        .unwrap(),
+                    ),
+                    visibility: Visibility::Visible,
+                    material: materials.add(Color::rgb(r, g, b).into()),
+                    transform: Transform::from_xyz(x, y, z),
+                    ..Default::default()
+                });
             }
         });
 }

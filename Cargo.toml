@@ -20,6 +20,7 @@ strip = true
 codegen-units = 1
 
 [dependencies]
-bevy = { version = "0.10.1", features = ["dynamic_linking"] }
-bevy-inspector-egui = "0.18.3"
-bevy_flycam = "0.10.1"
+bevy = { version = "0.12", features = ["dynamic_linking"] }
+bevy-inspector-egui = "0.21"
+bevy_flycam = "0.12"
+itertools = "0.11.0"

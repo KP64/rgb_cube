@@ -82,12 +82,11 @@ fn setup_environment(mut commands: Commands) {
         .insert(Name::new("Camera"));
 
     // * Going through every combination
-    for (x, y, z) in iproduct!(0..2, 0..2, 0..2) {
-        let x = if x % 2 == 0 { 1. } else { -1. };
-        let y = if y % 2 == 0 { 1. } else { -1. };
-        let z = if z % 2 == 0 { 1. } else { -1. };
+    for (x, y, z) in iproduct!(-1..1, -1..1, -1..1) {
         commands.spawn(PointLightBundle {
-            transform: Transform::from_translation(Vec3::new(x, y, z) * LIGHT_POSITION),
+            transform: Transform::from_translation(
+                Vec3::new(x as f32, y as f32, z as f32) * LIGHT_POSITION,
+            ),
             ..Default::default()
         });
     }
