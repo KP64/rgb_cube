@@ -21,6 +21,7 @@ use std::ops::Range;
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     log::{self, LogPlugin},
+    math::primitives,
     prelude::*,
     window::{Window, WindowResolution},
 };
@@ -48,6 +49,7 @@ fn main() {
                 .set(LogPlugin {
                     level: log::Level::DEBUG,
                     filter: "debug,wgpu_core=warn,wgpu_hal=warn,mygame=debug".into(),
+                    ..default()
                 }),
         )
         .add_plugins((
@@ -131,14 +133,14 @@ fn setup_rgb_cube(
                 let b = z / GRID_COUNT;
                 parent.spawn(PbrBundle {
                     mesh: meshes.add(
-                        Mesh::try_from(shape::Icosphere {
+                        Mesh::try_from(primitives::Sphere {
                             radius: 0.25,
                             ..Default::default()
                         })
                         .unwrap(),
                     ),
                     visibility: Visibility::Visible,
-                    material: materials.add(Color::rgb(r, g, b).into()),
+                    material: materials.add(Color::rgb(r, g, b)),
                     transform: Transform::from_xyz(x, y, z),
                     ..Default::default()
                 });
